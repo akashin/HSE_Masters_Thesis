@@ -70,6 +70,11 @@ The bot is trained with fixed FPS 32. The screenshots are binarized and rescaled
 \subsection{Results}
 
 We've built a Deep RL based controller that outperforms the standard rule-based bot, while using raw pixels as an input.
-The training usually takes 6 hours on GPU and it takes 10 million iterations to beat the built-in scripted bot.
+The training takes 6 hours on GPU and it takes 10 million iterations to beat the built-in scripted bot.
+
+\begin{figure}[h!]
+\caption{Average score difference over a set of 21 games.}
+\includegraphics[width=\textwidth]{LearningCurve}
+\end{figure}
 
 The code implementation is available on \href{https://github.com/akashin/HSE_AI_Labs/tree/master/Lab_4}{GitHub}.

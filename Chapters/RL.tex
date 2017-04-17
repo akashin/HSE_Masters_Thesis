@@ -4,7 +4,24 @@ Reinforcement learning usually solves sequential decision making problems. An RL
 
 A value function is a prediction of the expected, accumulative, discounted, future reward, measuring how good is each state, or state-action pair. The action value $Q^{\pi}(s, a) = E[R_t | s_t = s, a_t = a]$ is the expected return for selecting action $a$ in state $s$ and then following policy $\pi$. An optimal action value function $Q^{*}(s, a)$ is the maximum action value achievable by any policy for state $s$ and action $a$. We can define state value $V^{\pi}(s)$ and optimal state value $V^{*}(s)$ similarly.
 
-Temporal difference (TD) learning is a central idea in RL. It learns value function $V(s)$ directly from experience with TD error, with bootstrapping, in a model-free, online, and fully incremental way.  The update rule is $V(s_t) \leftarrow V(s_t) + \alpha [r_t + \gamma V(s_{t+1}) - V(s_t)]$, where $\alpha$ is a learning rate, and $r_t + \gamma V(s_{t+1}) - V(s_t)$ is called TD error. Similarly, Q-learning learns action value function, with the update rule, $Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha [r + \gamma \max_{a_{t+1}}Q(s_{t+1}, a_{t+1}) - Q(s_t,a_t)]$. Q-learning is an off-policy control method. In contrast, SARSA, representing state, action, reward, (next) state, (next) action, is an on-policy control method, with the update rule, $Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha [r + \gamma Q(s_{t+1}, a_{t+1}) - Q(s_t,a_t)]$. SARSA refines the policy greedily with respect to action values. TD-learning, Q-learning and SARSA converge under certain conditions. From optimal action value function, we can derive an optimal policy. 
+Temporal difference (TD) learning is a central idea in RL. It learns value function $V(s)$ directly from experience with TD error, with bootstrapping, in a model-free, online, and fully incremental way. 
+The update rule is:
+\begin{align*}
+ V(s_t) \leftarrow V(s_t) + \alpha [r_t + \gamma V(s_{t+1}) - V(s_t)]   
+\end{align*}
+where $\alpha$ is a learning rate, and $r_t + \gamma V(s_{t+1}) - V(s_t)$ is called TD error.
+
+Similarly, Q-learning learns action value function, with the update rule
+\begin{align*}
+ Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha [r + \gamma \max_{a_{t+1}}Q(s_{t+1}, a_{t+1}) - Q(s_t,a_t)]   
+\end{align*}
+Q-learning is an off-policy control method.
+
+In contrast, SARSA, representing state, action, reward, (next) state, (next) action, is an on-policy control method, with the update rule
+\begin{align*}
+    Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha [r + \gamma Q(s_{t+1}, a_{t+1}) - Q(s_t,a_t)]
+\end{align*}
+SARSA refines the policy greedily with respect to action values. TD-learning, Q-learning and SARSA converge under certain conditions. From optimal action value function, we can derive an optimal policy. 
 
 The above algorithms are referred to as TD(0) and Q(0), with one-step return. We have multi-step return variants or Monte-Carlo approach in the forward view. The eligibility trace from the backward view provides an online, incremental implementation, resulting in TD($\lambda$) and Q($\lambda$) algorithms, where $\lambda \in[0,1]$. When $\lambda = 1$, it is the same as a Monte Carlo approach. 
 
