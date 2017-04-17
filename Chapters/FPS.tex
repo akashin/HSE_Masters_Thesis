@@ -1,0 +1,54 @@
+\section{FPS environment}
+In this section we describe the FPS setup that we study in this work.
+The player has control over the agent that lives in 3-dimensional environment, can perform several types of actions that influence this environment and has a goal that is dictated by the rules of the game.
+As an input, agent receives 2-dimensional views of the environment from the first-person camera.
+
+In our particular case there are 3 types of actions that agent can perform:
+\begin{itemize}
+    \item Movement --- moves the agent in the direction of specified 3-d vector. This command will be processed by the environment to account for possible obstacles and physical laws that should be obeyed during movement.
+    \item Aiming --- changes the orientation of agent in space, that is specified by 3-dimensional vector of angles.
+    \item Shooting --- uses a weapon in direction of the agent's current orientation.
+\end{itemize}
+
+Each agent has an internal state that represents it's current amount of health points. This state can change under external effects, for example picking up health bonus or being damaged by other agent's shooting.
+The agent's actions depend on it's internal state, when health points become negative, no more actions are available for the agent and it is eliminated from the environment.
+
+%% Описать возможны режимы игры в FPS. Мы же тоже рассматриваем задачи Team DM и т.д.
+The goal of the agent is to eliminate all agent's from the opposite team.
+
+The FPS problem can be split into several different tasks:
+\begin{enumerate}
+    \item Navigation
+    \item Combat
+\end{enumerate}
+
+Some of this tasks can be formulated as a reinforcement learning problems.
+% Add links about previous approaches to each of the tasks described with summary of the
+% achieved results on them. What was successful? What needs to be addressed in the future?
+We are going to address tasks X, Y, Z in this work.
+
+%% We consider state-of-art methods for DRL, which were used for learning how to play ATARI games and, and aim to improve the learning rate of DRL algorithms applied in FPS environment with large number of possible actions.
+
+We can apply both on-policy (A3C) and off-policy (DQN) methods for this task because the direct simulation is available for the agent.
+%% Examples of successful application in Labyrinth and Montezuma, planning tasks (DRL blog on DM)
+
+The agents will face exploration/exploitation dilemma in the case of bonuses collection, because this is an action that doesn't yield immediate reward, can pay off in the long run, but introduces some risks.
+%% Ask Maria Bochkareva for complete list of bonuses with their descriptions
+
+% This should be somewhere near environment description.
+Our environment is partially observable, at any time agent sees only limited part of the vast environment. This means that it would be difficult to use model-based methods because they will need to represent high-dimensional hidden space. This means that we will use model-free methods.
+
+Our goal is to create an agent with the same set of inputs and actions as the human-player.
+
+%% All the text below (till the end of subsection) should be reorganized allowing reader to understand 'pro et contra' of each mentioned approach, preferably for game-like environment
+
+The original game rewards are very sparse - they come only in the end of round which can last for 1000s of frames, and summarize the behaviour of the bot as the whole without giving any details about particular actions.
+Reward shaping \cite{RewardShaping} methods might be used to introduce intermediate rewards and accelerate training. For example we might give a negative reward for losing health points, or give positive reward for discovering and damaging an enemy.
+Agent might also benefit from intrinsic motivation signals \cite{IntrinsicMotivation}.
+
+%% Add Gorilla Google Project information and similar approaches to parallel RL in the multi-agent environment
+
+The curriculum learning (CITE) methods might be used to mitigate a problem of sparse rewards and train agents on tasks that give more immediate rewards.
+
+Another method for addressing rewards problem is an imitation learning (CITE) that allow to generate rewards based on the similarity of behaviour to some reference agent.
+
