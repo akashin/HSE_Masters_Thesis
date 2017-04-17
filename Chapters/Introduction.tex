@@ -1,40 +1,40 @@
 \section{Introduction}
 
-%% Общее правило на введение - почти каждое нетривиальное утверждение должно подкрепляться релевантной, желательно актуальной ссылкой на научные источники или технические отчеты.
+What are video games?
 
 %% Вставь введение про видео-игры, жанр FPS и его важность в прогрессе аппаратных и программных решений для игровой индустрии (см. драфт статьи altmm).
 
-Decision making in multiplayer first-person shooters poses many challenges for computer algorithms.
-The algorithm should possess a variety of skills in order to perform successfully in the game,
-for example ability to do prediction of enemy's actions, long-term planning, cooperation with other
-bots.
-It's very complicated to incorporate all this skills into a single hand-crafted algorithm because
-it's often hard to formalize this concepts and the search space is vast.
+Decision making in multiplayer first-person shooters introduces many challenges for computer algorithms.
+The algorithm should possess a variety of skills in order to perform successfully in the game, 
+for example ability to predict enemy's actions, long-term planning, cooperation with other bots.
 
-Creating a multi-purpose first person shooter bot with reinforcement learning
+% ----- PREVIOUS METHODS -----
 
-Give a summary of pros and cons of this solution.
+The approaches for developing game AI have considerably evolved over time starting with simple finite-state automata (CITE), and the moving to more complex but still handwritten rule-based systems \cite{RuleBased} and fuzzy logic \cite{FuzzyLogic}. An overview of this and other approaches is given in \cite{AITechniques}.
+Over time, more general approaches utilizing learning appeared,
+including hierarchical controllers based on neural networks \cite{HierarchicalController} and usage of genetic algorithms to perform parameter tuning in predefined algorithm \cite{GeneticTuning}.
+More recently, reinforcement learning was successfully used to develop game AI \cite{RLGallagher}.
+Hybrid approach with human in the loop is described in \cite{InteractiveGallagher}.
 
-% У меня в статьях обычно это обосновается идеей создания унифицированногой модели поведения, которую разработчику не надо было бы настраивать вручную, прописывая скриптовое поведение на каждую ситуацию
-% Отсюда идея обучения
-% После чего нужно вставить обзор SL работ, которые занимались имитацией человека на основе логов игры
-% См. публикации проекта http://www.botprize.org/publications.html
+Another branch of research addressed the problem of developing `believable' human-like bots \cite{BelievableBots} by using imitation learning techniques \cite{UT2}. This is important because people enjoy more playing with human-like bots (CITE).
 
-This problems lead to development of a new family of self-improving control algorithms based on machine learning techniques,
-known as Reinforcement Learning algorithms.
+% ----- DEEP REINFORCEMENT LEARNING -----
 
-% Описание идеи, примеры успешных приложений, 2-3 ссылки
-
-% Следующий переход - успехи в CV и появление DRL алгоритмов, работающих с визуальными состояниями
-
-These class of algorithms has proven to be highly successful in many game settings,
-ranging from Atari games \cite{Atari} to classic board game of Go \cite{AlphaGo}.
-
-One of the main component of the state-of-the-art reinforcement learning agents are deep neural networks that are used as function approximators for state-value function or policy function.
+The general problem with all approaches is that they assume a lot of domain knowledge and are difficult to transfer between games. An ideal system would have a minimum amount of game-specific code and will be able to adapt to different conditions and learn different skills given enough time and data.
+One promising way for achieving this is combining ideas from deep learning and reinforcement learning.
 The area of deep learning has been rapidly developing in the latest years providing many useful
-instruments that allowed agents to be trained on raw pixels in end-to-end fashion.
+instruments for solving computer vision tasks of image recognition, most notably on ImageNet dataset \cite{AlexNet}. 
+One of the main component of the state-of-the-art reinforcement learning agents are deep neural networks that are used as function approximators for state-value function or policy function.
+This allowed RL agents to be trained on raw pixels in end-to-end fashion greatly increasing training speed by taking the human and custom preprocessing steps out of the loop.
+
+This approach has proven to be highly successful in gaming domain by outperforming human on visually rich Atari games \cite{Atari} and beating world champion in classic board game of Go \cite{AlphaGo}.
+There are also promising applications of Deep RL in high-dimensional moving systems such as humanoid robotics \cite{Robotics}.
+
 Application of recurrent neural networks\cite{RLRNN} and memory units (e.g. LSTMs \cite{TextGamesLSTM}) helped to tackle problems that require long-term planning.
 Finally, transfer learning (CITE) and curriculum learning \cite{Curriculum} techniques allowed to reuse the same architecture to handle different tasks and also greatly stabilized training.
+
+The benefit of this approach is that it's purely data-driven and assumes bare minimum about the environment itself. On the other hand, it requires a huge amount of data and computing resources.
+Fortunately, it's very easy to obtain data in video games comparing to other domains \cite{TrainInGames}. The hardware advances also were profound in the latest years, speeding up computations more then 10x using GPUs and custom accelerators for deep learning (TPUs, Nervana) (CITE).
 
 %% Переносим этот кусок в раздел после шутера, то есть до описания методов. Это наша мотивация и она должна идти до описания основных результатов в области
 
@@ -48,14 +48,23 @@ The games are a perfect testbed for evaluating this algorithms for several reaso
 \end{itemize}
 %% Label 1
 
+% \subsection{Environments}
+
+What are other related environments that are solved using RL? \\
+- Atari games \\
+- OpenAI Gym \\
+- DeepMind Lab \\
+- OpenAI Universe \\
+- VizDoom \\
+
 \section{FPS environment}
 In this section we describe the FPS setup that we study in this work.
-The player has control over the agent that lives in 3-dimensional environment , can perform several types of actions that influence this environment and has a goal that is dictated by the rules of the game.
+The player has control over the agent that lives in 3-dimensional environment, can perform several types of actions that influence this environment and has a goal that is dictated by the rules of the game.
 As an input, agent receives 2-dimensional views of the environment from the first-person camera.
 
 In our particular case there are 3 types of actions that agent can perform:
 \begin{itemize}
-    \item Movement --- moves the agent in direction of it's current orientation. This command will be processed by the environment to account for possible obstacles and physical laws that should be obeyed during movement.
+    \item Movement --- moves the agent in the direction of specified 3-d vector. This command will be processed by the environment to account for possible obstacles and physical laws that should be obeyed during movement.
     \item Aiming --- changes the orientation of agent in space, that is specified by 3-dimensional vector of angles.
     \item Shooting --- uses a weapon in direction of the agent's current orientation.
 \end{itemize}
@@ -66,19 +75,16 @@ The agent's actions depend on it's internal state, when health points become neg
 %% Описать возможны режимы игры в FPS. Мы же тоже рассматриваем задачи Team DM и т.д.
 The goal of the agent is to eliminate all agent's from the opposite team.
 
-The problem can be split into several different tasks:
+The FPS problem can be split into several different tasks:
 \begin{enumerate}
-    \item Processing the visual input of the agent to infer information about surrounding world.
-    \item Performing high-level movement commands, e.g. moving from point A to point B using primitive motions.
-    \item Predict enemy's behaviour and use it to inform other actions.
-    \item Cooperate with teammates to achieve the common goal.
-    \item Evaluate the profit of collecting bonuses.
+    \item Navigation
+    \item Combat
 \end{enumerate}
 
 Some of this tasks can be formulated as a reinforcement learning problems.
-(Why do we think this is a good approach?)
+% Add links about previous approaches to each of the tasks described with summary of the
+% achieved results on them. What was successful? What needs to be addressed in the future?
 We are going to address tasks X, Y, Z in this work.
-
 
 %% We consider state-of-art methods for DRL, which were used for learning how to play ATARI games and, and aim to improve the learning rate of DRL algorithms applied in FPS environment with large number of possible actions.
 
@@ -88,14 +94,18 @@ We can apply both on-policy (A3C) and off-policy (DQN) methods for this task bec
 The agents will face exploration/exploitation dilemma in the case of bonuses collection, because this is an action that doesn't yield immediate reward, can pay off in the long run, but introduces some risks.
 %% Ask Maria Bochkareva for complete list of bonuses with their descriptions
 
+% This should be somewhere near environment description.
 Our environment is partially observable, at any time agent sees only limited part of the vast environment. This means that it would be difficult to use model-based methods because they will need to represent high-dimensional hidden space. This means that we will use model-free methods.
+
+Our goal is to create an agent with the same set of inputs and actions as the human-player.
 
 %% All the text below (till the end of subsection) should be reorganized allowing reader to understand 'pro et contra' of each mentioned approach, preferably for game-like environment
 
 The original game rewards are very sparse - they come only in the end of round which can last for 1000s of frames, and summarize the behaviour of the bot as the whole without giving any details about particular actions.
-Reward shaping (CITE) methods might be used to introduce intermediate rewards and accelerate training. For example we might give a negative reward for losing health points, or give positive reward for discovering and damaging an enemy.
+Reward shaping \cite{RewardShaping} methods might be used to introduce intermediate rewards and accelerate training. For example we might give a negative reward for losing health points, or give positive reward for discovering and damaging an enemy.
+Agent might also benefit from intrinsic motivation signals \cite{IntrinsicMotivation}.
 
-%% Add Gorrilla Google Project information and similar approaches to parallel RL in the multi-agent environment
+%% Add Gorilla Google Project information and similar approaches to parallel RL in the multi-agent environment
 
 The curriculum learning (CITE) methods might be used to mitigate a problem of sparse rewards and train agents on tasks that give more immediate rewards.
 
@@ -103,47 +113,9 @@ Another method for addressing rewards problem is an imitation learning (CITE) th
 
 %%
 
-\section{Previous work}
+%% The rest part of the article is organized as follows. The Section 1 presents core definitions for RL and DRL algorithms.
 
-The reinforcement learning algorithms have been successfully applied in variety of tasks.
-
-Talk about boom of reinforcement learning. \\
-  - Atari \\
-  - AlphaGo \\
-  - Neural computers \\
-  - Robotics \\
-
-\subsection{Environments}
-
-What are other related environments that are solved using RL? \\
-- Atari games \\
-- OpenAI Gym \\
-- DeepMind Lab \\
-- OpenAI Universe \\
-- VizDoom \\
-
-\subsection{Methods}
-Mention methods to solve the problem: SARSA, TD-Learning, Q-learning
-Value based vs Policy based (e.g. actor-critic) methods.
-
-Deep reinforcement learning is a combination of Deep Learning and RL when we use neural networks as the function approximators in RL (e.g. to approximate value function). \\
-- Why is this good? \\
-- What problems does it solve? \\
-
-6. Current approaches: \\
-- DQN \\
-- A3C \\
-- UNREAL \\
-
-%% If did not need them - do not mention them or put a short link in introductory part
-7. Methods used inside RL agents \\
-- GANs \\
-- Planning networks \\
-- Attention and Memory (DNC) \\
-
-%% The rest part of the article is organized as follows. The Section 1 presents core definitions for RL and DRL algorithms. 
-
-% The section 2 describes the experiment made in Pong game on synthetic environment and technological aspects of implementation.
+% The Section 2 describes the experiment made in Pong game on synthetic environment and technological aspects of implementation.
 
 %The Section 3 describes the structure of BOT representation in Unreal Engine 4 and the model of a game, in which we will test our agent. 
 
