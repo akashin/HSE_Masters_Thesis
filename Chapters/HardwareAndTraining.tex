@@ -1,0 +1,26 @@
+\section{HardwareAndTraining}
+
+% Section about hardware and utilization
+
+- GPU vs CPU for training, motivation, comparison of performance, support
+  from different frameworks, cost, restrictions, dependence on the size of
+  the network. Sampling on CPU is fine, but parallelism is very bad.
+  Mention last paper by Facebook about ImageNet. Mention the paper Learning
+  to play in a day.
+
+In this section we describe:
+- How training is usually performed for RL algorithms: typical loop of samples collection
+and training. Difference between off-policy and on-policy algorithms.
+- Which hardware is used for training: Multiple CPUs, GPUs, TPUs, multiple machines. Add a links to
+A3C, GA3C, GORILA. What each hardware is good at? Parallelism, latency characteristics.
+- Memory requirements for DQN, they are huge and it's important to take into account.
+- Tell about important parameter BatchSize and how it shows in supervised learning (ImageNet paper)
+and in off-policy, on-policy learning.
+- Tell how this paper is going to take into account this hardware properties when coming up with the
+architecture.
+- Mention DQN, Gorilla, A3C, GA3C, ACER.
+- Describe how and why current algorithms underutilize the hardware, and how
+  improvement there can speedup the training. Tell the arising challenge with
+  batch size and learning rate. Find the papers that discuss this (no-one does
+  this!!! or so I think). Graphs about utilization of hardware with
+  different batch size and train frequency in DQN here.
