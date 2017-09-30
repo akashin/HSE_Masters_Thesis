@@ -1,5 +1,9 @@
 \section{Reinforcement Learning}
 
+- General introduction to RL. Give main definitions (something like the
+regular text in the first section of RL papers). Give links to
+Sutton-Barto, to biggest papers (DQN, A3C, AlphaGo)
+
 Reinforcement learning usually solves sequential decision making problems. An RL agent interacts with an environment over time. At each time step $t$, the agent receives a state $s_t$ and selects an action $a_t$ from some action space $\mathcal{A}$, following a policy $\pi(a_t|s_t)$, which is the agent's behavior, i.e., a mapping from state $s_t$ to actions $a_t$, receives a scalar reward $r_t$, and transitions to the next state $s_{t+1}$, according to the environment dynamics, or model, for reward function $R(s,a)$ and state transition probability $P(s_{t+1}|s_t, a_t)$ respectively. In an episodic problem, this process continues until the agent reaches a terminal state and then it restarts. The return $R_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k}$ is the discounted, accumulated reward with the discount factor $\gamma \in (0,1]$. The agent aims to maximize the expectation of such long term return from each state.     
 
 A value function is a prediction of the expected, accumulative, discounted, future reward, measuring how good is each state, or state-action pair. The action value $Q^{\pi}(s, a) = E[R_t | s_t = s, a_t = a]$ is the expected return for selecting action $a$ in state $s$ and then following policy $\pi$. An optimal action value function $Q^{*}(s, a)$ is the maximum action value achievable by any policy for state $s$ and action $a$. We can define state value $V^{\pi}(s)$ and optimal state value $V^{*}(s)$ similarly.
