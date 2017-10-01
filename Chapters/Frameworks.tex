@@ -8,13 +8,18 @@ is an important area of research, as it will yield big performance gains.
 In this section we describe:
 - Many methods and RL in particular rely Neural Networks training (they give good function approximation, can capture
 difficult patterns, very modular so can be combined into more complex architectures with special semantics).
+
 - Training of neural networks is hard and computationally demanding (training ImageNet now and 10 years ago was a different story). We have seen a huge growth in compute resources, but we need good tools to use this resources.
+
 - Different frameworks now address the questions of performance, scalability and usability.
+
 - The frameworks are usually implemented with low-level language like C, C++ under the hood, and expose
 a convenient interface in high-level language (Python, Lua, links to TF, Torch, PyTorch),
 that improves usability but sometimes greatly limits performance (tell about GIL lock in Python).
+
 - Now hardware, frameworks and algorithms co-evolve, so it's important to have a constant feedback loop between
 hardware vendors and practitioners (tell about NVIDIA DL Labs, Intel Labs, papers that they publish).
+
 - Research on efficient and scalable training architectures is very important (GORILA, DistBelief) as it
 allows faster and cheaper training (that as we know is was a deal breaker for Deep Learning).
 
