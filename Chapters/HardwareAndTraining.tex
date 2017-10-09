@@ -12,21 +12,143 @@ In this section we describe:
 - How training is usually performed for RL algorithms: typical loop of samples collection
 and training. Difference between off-policy and on-policy algorithms.
 
-- Which hardware is used for training: Multiple CPUs, GPUs, TPUs, multiple machines. Add a links to
-A3C, GA3C, GORILA. What each hardware is good at? Parallelism, latency characteristics.
+Usually, the reinforcement learning algorithms training consists of the following components
 
-- Memory requirements for DQN, they are huge and it's important to take into account.
+\begin{itemize}
+    \item Acting in the environment. At this step, the agent observes the current state of the
+    environment and makes the decision which action to take. This usually involves making one
+    forward pass in the neural network that represents the policy of the agent.
 
-- Tell about important parameter BatchSize and how it shows in supervised learning (ImageNet paper)
-and in off-policy, on-policy learning.
+    \item Sampling an observation from the environment. At this step the underlying simulator consumes
+    the action provided by the agent and performs transition to the next state, that might also
+    yield some reward visible to the agent. This step involves the simulator performing computations
+    with regards to the environment transition dynamics, and can be performed on CPU or on GPU for
+    the visuallty demanding environments.
 
-- Tell how this paper is going to take into account this hardware properties when coming up with the
-architecture.
+    \item Collecting the state transition to the dataset used to train the agent. At this step
+    the agent usually records a tuple $(s, a, r, s')$ that represents one transition and
+    consists of previous state, action, reward, and the resulting state.
 
-- Mention DQN, Gorilla, A3C, GA3C, ACER.
+    \item Using the collected data to improve the policy. This step uses the data that was collected
+    during the interaction with the environment to update parameters of the policy in such way that
+    it improves the average reward received by agent. Usually this step resembles solving a
+    supervised learning problem.
+\end{itemize}
 
-- Describe how and why current algorithms underutilize the hardware, and how
-  improvement there can speedup the training. Tell the arising challenge with
-  batch size and learning rate. Find the papers that discuss this (no-one does
-  this!!! or so I think). Graphs about utilization of hardware with
-  different batch size and train frequency in DQN here.
+Depending whether the learning algorithm is on-policy or off-policy, the fate of the collected
+dataset will depend. For off-policy learning, the dataset might be kept between different updates
+to the policy. In on-policy learning, dataset is usually discarded after any big change to the
+policy, as it greatly changes the distribution of data and introduces bias to the training
+procedure.
+
+Different training components might benefit from different hardware type. The acting and sampling
+from the environment requires low-latency computation to deliver good throughput. This is well
+suited for fast CPUs or GPUs, though the later tend to be underutilized on such workloads.
+For most training regimes there is no strict requirement that all samples are comming from the
+same environment, which allows a simple data-parallel training scheme in which agent is interacting
+with multiple copies of environment running in parallel. This allows to achieve the same data
+throughput without the need for high-performance sampler. This scheme might be more memory intensive
+though, and also requires additional synchronization mechanisms during collection of data
+and acting in the environments using the same model.
+
+When it comes to the training step, it is usually perceived as a supervised-learning task
+optimized using stochastic gradient descent on the subset of currently collected transitions.
+As the most popular learning models for RL nowadays are neural networks, this procedure
+benefits from hardware that is tailored for running deep neural networks, for example GPUs
+or TPUs \cite{TPU}. One caveat though is that the models required for most of RL tasks today
+are considered small and shallow (millions of parameters) compared to those, used on
+computer vision or machine translation tasks (billions of parameters). This limits the benefits
+from model parallelism during training.
+
+Another compelling option is distributed training, in which multiple possibly different compute
+nodes are involved, executing one or several learning components. The example of such architecture
+for reinforcement learning is GORILA \cite{GORILA} which is a general way to perform off-policy
+Q-Learning. This architecture decomposes training into three components:
+\begin{itemize}
+    \item Actor - instance of environment and q-network that interacts with this environment.
+        Actor collects training experience and sends it to global experience replay memory.
+
+    \item Learner - instance of q-network that processes experience from replay memory and
+        generates updates to policy (stochastic gradients) that are sent to parameter servers.
+
+    \item Parameter server - holds part of the parameters of the policy/q-network. This component
+        receives gradients from learners and applies them to the current model parameters.
+\end{itemize}
+
+This architecture has very good scalability properties, allowing to spawn actors and learners
+independently, based on the properties of the problem at hand. It also supports heterogenous
+components - learners might use GPUs and actors and parameter servers might run entirely on CPU.
+One of the limitations of this architecture is that it's not suitable for on-policy learning,
+as the delay between experience being produced and used for training is unbounded, and there
+are no guarantees on freshness of parameters used by actors.
+
+When it comes to on-policy learning, the tight feedback loop between actor and learner becomes
+extremely important. One of the architectures that implements this is called A3C \cite{A3C}, that
+stands for asynchronous advantage actor-critic. This algorithm implements actor-critic policy
+gradient method, that is trained solely on CPU. All training components are located on the
+single machine and share policy parameters in a shared memory. The actor and the learner are
+bundled together into actor-learner component, and experience produced by the actor is immediatly
+consumed by the corresponding learner to compute a gradient update to the shared parameters.
+Multiple actor-learners are running at the same time independently, and their number usually
+depends on the number of CPU cores on the machine. It's important to note, that this architecture
+it still slighly off-policy, as the learners are contributing the gradients to the shared parameters
+that does not always correspond to the parameters that they were acting with, though this amount
+of staleness does not visiably influence the stability of the algorithm at this scale.
+
+The vanilla A3C was running solely on CPU cores without any hint on GPU usage, but there are
+several follow up works that showed how to efficiently utilize GPUs for this task. The general
+motive is to take advantage of GPUs ability to process big batches of data in parallel.
+This approach is used in GA3C \cite{GA3C}, that proposes to perform all neural network computations
+(actions and training) on GPU in a batched manner. This is achieved through introducing a system
+of queues for acting and training requests. When the actor needs to decide on the action it
+posts a request to the \emph{prediction queue}, that is periodically processed by predictor threads,
+that in turn perform this predictions on GPU and return the result to requester.
+The actors send the observed transitions to the \emph{training queue} that is also periodically
+processed by the trainer threads that perform the actual update of the model on the GPU.
+
+One aspect of training procedure that is often disregarded is the amount of RAM allocated during
+training. The algorithms like DQN usually require huge amount of memory to operate store the
+replay table. For example for Atari games, the replay table in DQN \cite{DQN} paper stores
+last 1 million transitions, which is around 50GB - something that is only common on big server
+machines.
+
+When using stochastic gradient descent, one important parameter that is directly connected both
+with training speed and resource efficiency of the training procedure is the size of batch of
+samples that is used to make compute a gradient for one step. As a rule, the bigger batch size
+is, the more efficient it is to perform the computation of massively parallel hardware like
+GPUs and TPUs, because this hardware benefits from homogenuous computations and model parameters
+sharing across several computations. From another perspective, batch size influences the noisiness
+of the gradient estimate that is used during update, and this in turn correlates with the
+convergence speed of the model. In particular, high variance gradients are a common reason of
+divergence of policy-gradient reinforcement learning methods. Seeing the benefits of large batch
+size, one might ask why aren't we making batch sizes as big as possible? There are at least two
+reasons why this is not always wise idea: first, it increases the computation cost of the
+algorithm, which actually was a motivator for developing stochastic gradient descent. Second
+reason, is the fact that after some threshold, adding more samples to batch would not contribute
+much to the quality of obtained gradients. This is a consequence of well known central limit
+theorem that in particular tells that the variance of the Monte-Carlo estimate shrinks by a factor
+of $1/\sqrt{N}$ where $N$ is the sample size.
+Another parameter that is somewhat connected to the batch size is the learning rate. In general,
+you want to keep learning rate small when you're not sure about the gradient updates, and increase
+it when you believe that the gradients give a good estimate of the direction of the optimal point.
+When the batch size is large, one can be more sure about the quality of gradient and increase the
+learning rate. Great example of this approach is shown in the paper that claims to train an image
+classifier for ImageNet dataset in one hour with batch size of 8196 images on cluster of GPUs
+\cite{1hour_imagenet}, by also introducing the learning rate scaling procedure. This result also
+achieves 90\% scaling efficiency when moving from 8 GPUs to 256 GPUs.
+
+The question of choosing good batch size for reinforcement learning algorithms didn't receive
+much attention in the literature so far. The nature of optimization procedure introduces additional
+challenges here - the training target is usually moving, the distribution of training data changes,
+the quick feedback loop between the trained model and acting in environment is important.
+
+In this work we are looking at the effect of different batch sizes and learning rates on the
+learning algorithm as well as hardware efficiency when using GPU. This is motivated by the fact
+that many of the existing algorithms are not producing non-hardware friendly workloads, and this
+leads to poor utilization. One such example is the DQN algorithm, that in basic implementation
+leads to 30\% of GPU utilization because it interleaves cheap prediction steps and expensive
+training steps in the same thread. The A3C algorithm also didn't take advantage of specialized
+hardware until the recent work on GA3C.
+
+- Graphs about utilization of hardware with
+different batch size and train frequency in DQN here.

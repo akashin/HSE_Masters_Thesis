@@ -140,6 +140,22 @@
 
 \renewcommand{\epsilon}{\varepsilon}
 
+\newcommand{\States}{\mathcal{S}}
+\newcommand{\Actions}{\mathcal{A}}
+\newcommand{\Rewards}{\mathcal{R}}
+\newcommand{\TransitionProb}{\mathcal{T}}
+
+\newcommand{\walls}[1]{\left | #1 \right |} % |smth_vertically_large|
+\newcommand{\pars}[1]{\left( #1 \right)} % (smth_vertically_large)
+\newcommand{\class}[1]{\left[ #1 \right]} % [smth_vertically_large]
+\newcommand{\braces}[1]{\left\{ #1 \right\}} % {smth_vertically_large}
+\newcommand{\len}[1]{\walls{#1}}
+\newcommand{\abs}[1]{\walls{#1}}
+
+% Package for writing pseudo-code.
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
