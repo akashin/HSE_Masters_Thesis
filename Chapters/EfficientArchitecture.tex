@@ -37,44 +37,39 @@ We end up with the architecture that consists of the following components:
 \includegraphics[width=\textwidth]{architecture}
 \end{figure}
 
-We provide a pseudo-code for each component thread:
+We provide a pseudo-code for each component thread.
 \begin{algorithm}
-    \caption{Actor thread}\label{actor}
-    \begin{algorithmic}[1]
-        \State $env \gets MakeEnv(seed)$
-        \State $state \gets env.Start()$
-        \State $T \gets 0$
-        \While{TrainingNotDone}
-            \If{$T \mod F_{sync} = 0$}
-                \State $model \gets SyncModel()$
-            \EndIf
-            \State $action \gets model.Predict(state)$
-            \State $nextState, reward \gets env.Act(action)$
-            \State $actorQueue.Enqueue(state, action, reward, nextState)$
-            \State $state \gets nextState$
-            \State $T \gets T + 1$
-        \EndWhile
-    \end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-    \caption{Trainer thread}\label{trainer}
-    \begin{algorithmic}[1]
-        \While{TrainingNotDone}
-            \State $states, actions, rewards, nextStates \gets actorQueue.Dequeue()$
-            \State $StoreExperience(states, actions, rewards, nextStates)$
-            \State $learnerQueue.Enqueue(SampleExperience(batchSize))$
-        \EndWhile
-    \end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-    \caption{Learner thread}\label{learner}
-    \begin{algorithmic}[1]
-        \For{$T \gets 0, T_{max}$}
-            \State $batch \gets learnerQueue.Dequeue()$
-            \State $Train(batch)$
-        \EndFor
+    \caption{Decoupled DQN}\label{actor}
+    \begin{algorithmic}
+        \Procedure {Actor}{$env$, $actorQueue$}
+            \State $state \gets env.Start()$
+            \State $T \gets 0$
+            \While{TrainingNotDone}
+                \If{$T \mod F_{sync} = 0$}
+                    \State $model \gets SyncModel()$
+                \EndIf
+                \State $action \gets model.Predict(state)$
+                \State $nextState, reward \gets env.Act(action)$
+                \State $actorQueue.Enqueue(state, action, reward, nextState)$
+                \State $state \gets nextState$
+                \State $T \gets T + 1$
+            \EndWhile
+        \EndProcedure
+        \Statex
+        \Procedure {Trainer}{$actorQueue$, $learnerQueue$}
+            \While{TrainingNotDone}
+                \State $states, actions, rewards, nextStates \gets actorQueue.Dequeue()$
+                \State $StoreExperience(states, actions, rewards, nextStates)$
+                \State $learnerQueue.Enqueue(SampleExperience(batchSize))$
+            \EndWhile
+        \EndProcedure
+        \Statex
+        \Procedure {Learner}{$learnerQueue$}
+            \For{$T \gets 0, T_{max}$}
+                \State $batch \gets learnerQueue.Dequeue()$
+                \State $Train(batch)$
+            \EndFor
+        \EndProcedure
     \end{algorithmic}
 \end{algorithm}
 

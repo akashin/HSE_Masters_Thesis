@@ -12,7 +12,7 @@ learning rates.
 We evaluate our architecture on the subset of VizDoom and Atari tasks and compare it with the
 performance of DQN. All experiments are performed on Microsoft Azure NC6 instances, with NVidia K80
 video card and 6 cores of Intel Xeon Processor E5-2690 v3. We use the neural network architecture
-described in \cite{NatureDQN}, that consists of convolutional layer with 32 filters of size $8
+described in \cite{mnih-dqn-2015}, that consists of convolutional layer with 32 filters of size $8
 \times 8$ with stride 4, followed by convolutional layer with 64 filters of size $4 \times 4$ with
 stride 2, followed by a convolutional layer with 64 filters of size $3 \times 3$ with stride 1,
 followed by a fully connected layer with 512 hidden units. All four hidden layers were followed by
@@ -46,7 +46,7 @@ over the first $1/4$ of training iterations. We use learning rate of $1e-4$.
 - Graphs of DQN, DecoupledDQN performance on 3 VizDoom Gym levels.
 
 \paragraph{Atari}
-We use the same input preprocessing as in \cite{NatureDQN}, involving rescaling images to $84
+We use the same input preprocessing as in \cite{mnih-dqn-2015}, involving rescaling images to $84
 \times 84$ and turning them from RGB into greyscale, and also introducing a frame skip of size 4.
 We use the replay table of size $200000$, and anneal exploration ratio $\eps$ linearly from 1 to 0.02
 over the first $1/4$ of training iterations. We use learning rate of $1e-4$.
