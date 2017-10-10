@@ -19,34 +19,33 @@ On the downside, training neural networks is notoriously difficult and expensive
 that involves huge amount of computation resources over time \cite{LongTraining}.
 This problem is being constantly attacked from three different angles:
 \begin{enumerate}
-\item Improving the data efficiency of training algorithms - there is a permanent effort on
-improving optimization and learning techniques \cite{AdaGrad},\cite{ImageNetInHour}, \cite{BatchNorm}.
+    \item Improving the data efficiency of training algorithms - there is a permanent effort on
+        improving optimization and learning techniques \cite{Adam},\cite{ImageNetInHour}, \cite{BatchNorm}.
 
-\item Improving the hardware performance - the first successful example of using specific
-hardware to improve training was the use of GPUs to train on Vision datasets \cite{NgCudnn}, \cite{AlexNet}.
-At that point, ability to efficiently train networks on GPU was a lucky coincidence, and
-required a huge effort to adapt the training code to specific hardware specific language that
-was mainly oriented for graphics and gaming programming. Now, the hardware is built with
-the specific goal of training neural networks in mind, allowing to have much bigger performance
-gains comparing to the general purpose CPUs. There are several big players in this area,
-notably NVidia \cite{NVidiaGPU}, Intel \cite{Nervana} and Google \cite{TPU}
+    \item Improving the hardware performance - the first successful example of using specific
+        hardware to improve training was the use of GPUs to train on Vision datasets \cite{NgCudnn}, \cite{AlexNet}.
+        At that point, ability to efficiently train networks on GPU was a lucky coincidence, and
+        required a huge effort to adapt the training code to specific hardware specific language that
+        was mainly oriented for graphics and gaming programming. Now, the hardware is built with
+        the specific goal of training neural networks in mind, allowing to have much bigger performance
+        gains comparing to the general purpose CPUs. There are several big players in this area,
+        notably NVidia \cite{NVidiaGPU}, Intel \cite{Nervana} and Google \cite{TPU}
 
-\item Improving the tooling around training - building clever software frameworks, that will 
-both allow the use the best practices for training, and utilize the unrelying hardware
-in the most efficient manner. Before the development of modern training frameworks, the process
-of describing your machine learning model involved writing a lot of code for linear algebra
-manipulations in a very low-level \cite{FORTRAN}, \cite{NumPy}, and any change to the model
-or the training procedure could lead to huge changes in code.
-Nowdays it's possible to describe efficient model in 10 lines of Python code and expect
-a performance as if it was written in high-performant language like C++.
-Also, some of the frameworks make the process of scaling the model training to multiple machines
-incredibly simple, freeing the user from thinking about explicit network communication and
-fault tolerance \cite{TensorFlow}.
-Different frameworks now address the questions of performance, scalability and usability.
-- The frameworks are usually implemented with low-level language like C, C++ under the hood, and expose
-a convenient interface in high-level language (Python, Lua, links to TF, Torch, PyTorch),
-that improves usability but sometimes greatly limits performance (tell about GIL lock in Python).
-
+    \item Improving the tooling around training - building clever software frameworks, that will 
+        both allow the use the best practices for training, and utilize the unrelying hardware
+        in the most efficient manner. Before the development of modern training frameworks, the process
+        of describing your machine learning model involved writing a lot of code for linear algebra
+        manipulations in a very low-level \cite{FORTRAN}, \cite{NumPy}, and any change to the model
+        or the training procedure could lead to huge changes in code.
+        Nowdays it's possible to describe efficient model in 10 lines of Python code and expect
+        a performance as if it was written in high-performant language like C++.
+        Also, some of the frameworks make the process of scaling the model training to multiple machines
+        incredibly simple, freeing the user from thinking about explicit network communication and
+        fault tolerance \cite{TensorFlow}.
+        Different frameworks now address the questions of performance, scalability and usability.
+        - The frameworks are usually implemented with low-level language like C, C++ under the hood, and expose
+        a convenient interface in high-level language (Python, Lua, links to TF, Torch, PyTorch),
+        that improves usability but sometimes greatly limits performance (tell about GIL lock in Python).
 \end{enumerate}
 
 An important observation here is that algorithms, hardware and frameworks are tightly connected,
