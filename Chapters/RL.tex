@@ -1,67 +1,176 @@
+%! TEX root = ../Thesis.tex
+
 \section{Reinforcement Learning}
 
-- General introduction to RL. Give main definitions (something like the
-regular text in the first section of RL papers). Give links to
-Sutton-Barto, to biggest papers (DQN, A3C, AlphaGo).
-In this section we will describe:
-- RL as a framework for describing decision making problems.
+In this chapter we give a general introduction to the reinforcement learning, definition of the
+problem it is trying to solve, and basic algorithms.
 
-- Definitions for observation space, action space, rewards.
+% Give links to Sutton-Barto, to biggest papers (DQN, A3C, AlphaGo).
 
-- Definition of environment transition model and reward dynamics.
+\subsection{Problem definition}
 
-- How those definitions map to some real/artificial environments. E.g. Pong, Robotic arm completing a task,
-showing an ad on the internet (bandits).
+% - RL as a framework for describing decision making problems.
+% - Definitions for observation space, action space, rewards.
+% - Definition of environment transition model and reward dynamics.
 
-- Describe helper functions that are used in different algorithms (V - state value function, Q - state action value function)
+Reinforcement learning is a framework for describing and solving sequential decision making problems.
+An RL agent interacts with an environment over time. At each time step $t$, the agent receives a state $s_t \in \States$
+and selects an action $a_t$ from some action space $\Actions$, following a policy $\pi(a_t|s_t)$, which is the
+agent's behavior, i.e., a mapping from state $s_t$ to actions $a_t$, receives a scalar reward
+$r_t$, and transitions to the next state $s_{t+1}$, according to the environment dynamics, or
+model, reward distribution $\Rewards(s,a)$ and state transition probability $\TransitionProb(s_{t+1}|s_t, a_t)$ respectively.
+In an episodic problem, this process continues until the agent reaches a terminal state and then it restarts.
+The return $R_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k}$ is the discounted, accumulated reward
+with the discount factor $\gamma \in (0,1]$. The agent aims to maximize the expectation of such long term return from each state.
 
-- Tell about a distinction between evaluation and control algorithms.
+% - Tell about a distinction between evaluation and control algorithms.
 
-- Describe basic algorithms for evaluation this values for a static policy: Monte Carlo, Value iteration.
+Two main tasks are distinguised withing RL framework: evaluation and control. For evaluation,
+one needs to estimate expected reward achieved by a given policy $\pi$. For control, one needs to
+derive the policy $\pi^*$ that achieves maximizes the expectation of reward. Usually, evaluation is
+solved as part of the conrol problem.
 
-- Describe basic value based algorithms for control: Sarsa, Q-Learning.
+For more detailed introduction please refer to \cite{sutton1998reinforcement}.
 
-- Describe policy based algorithms: REINFORCE, A3C.
+% - How those definitions map to some real/artificial environments. E.g. Pong, Robotic arm completing a task,
+% showing an ad on the internet (bandits).
 
-- Tell about on-policy vs off-policy learning and how it affects data efficiency.
+\subsection{Basic algorithms}
 
-- Tell about exploration problem and how different methods address this.
+A \emph{value function} is a prediction of the expected, accumulative, discounted, future reward, measuring how
+good is each state, or state-action pair.
+The \emph{action value function} $Q^{\pi}(s, a) = E[R_t | s_t = s, a_t = a]$ is the expected return for
+selecting action $a$ in state $s$ and then following policy $\pi$.
+An \emph{optimal action value function} $Q^{*}(s, a)$ is the maximum action value achievable by any policy for
+state $s$ and action $a$. We can define state value $V^{\pi}(s)$ and optimal state value $V^{*}(s)$ similarly.
 
-- Tell about neural network approximators and why they are successful (good a solving perception tasks with complex
-observation space).
+When the state and action space have finite size, action and state value functions can be
+repesented in a tabular form, one cell in the memory corresponding to one value. In general case,
+one can use function approximators to represent value functions. For example, one of the
+common approaches is to use neural network with parameters $\theta$ with state $s$ as an input and
+a $V(s|\theta)$ as an output. This approach has a benefit that it can work on tasks with complex
+observation state like images. On the downside, the training procedure becomes less stable, and
+it's difficult to prove convergence properties for this models.
 
-
-Reinforcement learning usually solves sequential decision making problems. An RL agent interacts with an environment over time. At each time step $t$, the agent receives a state $s_t$ and selects an action $a_t$ from some action space $\mathcal{A}$, following a policy $\pi(a_t|s_t)$, which is the agent's behavior, i.e., a mapping from state $s_t$ to actions $a_t$, receives a scalar reward $r_t$, and transitions to the next state $s_{t+1}$, according to the environment dynamics, or model, for reward function $R(s,a)$ and state transition probability $P(s_{t+1}|s_t, a_t)$ respectively. In an episodic problem, this process continues until the agent reaches a terminal state and then it restarts. The return $R_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k}$ is the discounted, accumulated reward with the discount factor $\gamma \in (0,1]$. The agent aims to maximize the expectation of such long term return from each state.
-
-A value function is a prediction of the expected, accumulative, discounted, future reward, measuring how good is each state, or state-action pair. The action value $Q^{\pi}(s, a) = E[R_t | s_t = s, a_t = a]$ is the expected return for selecting action $a$ in state $s$ and then following policy $\pi$. An optimal action value function $Q^{*}(s, a)$ is the maximum action value achievable by any policy for state $s$ and action $a$. We can define state value $V^{\pi}(s)$ and optimal state value $V^{*}(s)$ similarly.
-
-Temporal difference (TD) learning is a central idea in RL. It learns value function $V(s)$ directly from experience with TD error, with bootstrapping, in a model-free, online, and fully incremental way. 
-The update rule is:
+\paragraph{Evaluation}
+Policy evaluation algorithms compute the state value function of action value function given the policy and the access to the environment. If the model of the environment is known, model-based algorithms like dynamic programming can be applied. The Bellman equation defines the identity that must hold for the value function:
 \begin{align*}
- V(s_t) \leftarrow V(s_t) + \alpha [r_t + \gamma V(s_{t+1}) - V(s_t)]   
+    V^{\pi}(s) = \sum_{a \in \Actions} \pi(a|s) \sum_{s' \in \States} \TransitionProb(s'|s, a)
+    (\E[\Rewards(s, a)] + \gamma V^{\pi} (s'))
 \end{align*}
-where $\alpha$ is a learning rate, and $r_t + \gamma V(s_{t+1}) - V(s_t)$ is called TD error.
 
-Similarly, Q-learning learns action value function, with the update rule
+If the state and action space is finite iterating this equation guarantees the convergence to the true value function
+for a given policy. When action space is continuous, it is possible to replace the sum with integral and in some cases compute it exactly.
+
+Often, the model of the environment is unknown, and we only have access to simulation procedure, and in particular to
+individual trajectories of the policy execution. Each trajectory consists of a sequence of states, actions and rewards:
+$\braces{s_t, a_t, r_t}_{t = 0}^{\infty}$. Given a set of trajectories, we can build a Monte-Carlo estimate for the value function:
 \begin{align*}
- Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha [r + \gamma \max_{a_{t+1}}Q(s_{t+1}, a_{t+1}) - Q(s_t,a_t)]   
+    V^{\pi}(s) = \frac{1}{\abs{\Tau}} \sum_{\tau \in \Tau} \sum_{t = 0}^{\infty} \gamma^t r_t(\tau)
 \end{align*}
-Q-learning is an off-policy control method.
+Where $\tau$ is an individual trajectory. This estimate is guaranteed to converge to a true
+estimate for the states that will be visited by the policy due to the central-limit theorem.
+However, this method required very big amount of samples to get good estimates.
 
-In contrast, SARSA, representing state, action, reward, (next) state, (next) action, is an on-policy control method, with the update rule
+Temporal difference learning (TD-learning) is a model-free sample based method that relies on bootstrapping to
+estimate value function. It iteratively applies the following update rule along observed
+trajectories:
 \begin{align*}
-    Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha [r + \gamma Q(s_{t+1}, a_{t+1}) - Q(s_t,a_t)]
+    V^{\pi}(s_t) = V^{\pi}(s_t) + \alpha (r_t + \gamma (V^{\pi}(s_{t + 1}) - V^{\pi}(s_t)))
 \end{align*}
-SARSA refines the policy greedily with respect to action values. TD-learning, Q-learning and SARSA converge under certain conditions. From optimal action value function, we can derive an optimal policy. 
+Where $\alpha > 0$ is the learning rate of the algorithm. The value $r_t + \gamma (V^{\pi}(s_{t +
+1}) - V^{\pi}(s_t))$ is called TD-error.
 
-The above algorithms are referred to as TD(0) and Q(0), with one-step return. We have multi-step return variants or Monte-Carlo approach in the forward view. The eligibility trace from the backward view provides an online, incremental implementation, resulting in TD($\lambda$) and Q($\lambda$) algorithms, where $\lambda \in[0,1]$. When $\lambda = 1$, it is the same as a Monte Carlo approach. 
+\paragraph{Control}
+Optimal control methods find the behaviour for each state that maximises the expected reward. This
+methods are generally devided in to categories: Value based and Policy based methods.
+We also distinguish on-policy and off-policy methods. On-policy methods try to improve current
+policy until it becomes optimal and use data generated by current policy for training.
+Off-policy methods can utilize data generated by other policies to improve the current estimate of
+the optimal policy. Off-policy methods are usually more data-efficient, but less stable then on-policy
+methods.
 
-We discuss the tabular cases above, where a value function or a policy is stored in a tabular form. Function approximation is a way for generalization when the state and/or action spaces are large or continuous. Linear function approximation used to be a popular choice, esp. before the work of Deep Q-Network~\citep{Atari}.
+SARSA is a value-based on-policy method that applies simular update to evaluate the action value function:
+\begin{align*}
+    Q^{\pi}(s_t, a_t) = Q^{\pi}(s_t, a_t) + \alpha (r_t + \gamma (Q^{\pi}(s_{t + 1}, a_{t + 1}) -
+    Q^{\pi}(s_t, a_t)))
+\end{align*}
+The derived Q function can be used to solve the control task by choosing the next action greedily
+with respect to currently learned Q-function.
 
-%For TD($\lambda$), the update rule follows, $\delta_t \leftarrow r_t + \gamma V(s_{t+1}; \theta) - \gamma V(s_t; \theta), e_t \leftarrow \gamma \lambda e_{t-1} \nabla_{\theta} + V(s_t; \theta), \theta_t \leftarrow \theta_{t-1} + \alpha \lambda e_t$.
+Q-learning is the off-policy control method that learns the optimal action value 
+function $Q^{*}$ using the following update rule:
+\begin{align*}
+    Q^{*}(s_t, a_t) = Q^{*}(s_t, a_t) + \alpha (r_t + \gamma (\max_{a} Q^{*}(s_{t + 1}, a) -
+    Q^{*}(s_t, a_t)))
+\end{align*}
+One of the practical implementations of Q-learning that uses neural networks as function
+approximator is DQN\cite{mnih-dqn-2015}. The state-value function is modeled as $Q(s,a,\theta)$,
+where $\theta$ are the parameters of the neural network.
+DQN uses several techniques to improve the stability of training procedure:
+\begin{itemize}
+    \item Experience replay --- the traces collected by the agent acting in the environment are
+        stored in the experience replay table. During training procedure, the learner samples
+        the random subset of transitions from the table and computes gradient using this subset.
+        This allows to break natural temporal correlation between consecuitive transitions,
+        thus reducing the variance of the gradient estimate.
 
-In contrast to value-based methods like TD learning and Q-learning, policy-based methods optimize the policy $\pi(a|s; \theta)$ (with function approximation) directly, and update the parameters $\theta$ by gradient ascent on $E[R_t]$. REINFORCE is a policy gradient method, updating $\theta$ in the direction of $\nabla_{\theta} \log \pi(a_t|s_t; \theta) R_t$. Usually a baseline $b_t(s_t)$ is subtracted from the return to reduce the variance of gradient estimate, yet keeping its unbiasedness, to yield the gradient direction $\nabla_{\theta} \log \pi(a_t|s_t; \theta) (R_t - b_t(s_t))$. Using $V(s_t)$ as the baseline $b_t(s_t)$, we have the advantage function $A(a_t, s_t) = Q(a_t, s_t) - V(s_t)$, since $R_t$ is an estimate of $Q(a_t, s_t)$. In actor-critic algorithms, the critic updates action-value function parameters, and the actor updates policy parameters, in the direction suggested by the critic.
+    \item Target network --- the update rule of Q-learning is replaced with minimization of the
+        following loss function over subset of samples from replay table:
+        \begin{align*}
+            \pars{Q(s_t, a_t, \theta) - (r_t + \gamma \max_{a} Q(s_{t + 1}, a, \theta^{-}))}^2
+        \end{align*}
+        where $\theta^{-}$ corresponds to the parameters of the target network. This parameters are
+        periodically synchronized with the parameters of the main network at step $\theta^t$. This
+        makes the training procedure more stable by adding a delay between the update to the
+        parameters and it's effect on the training targets, which should make the oscillations and
+        divergence less likely.
+\end{itemize}
 
-We obtain deep reinforcement learning (deep RL) methods when we use deep neural networks to approximate any of the following component of reinforcement learning: value function, $V(s; \theta)$ or $Q(s,a; \theta)$, policy $\pi(a|s; \theta)$, and model (state transition and reward). Here, the parameters $\theta$ are the weights in deep neural networks. When we use "shallow" models, like linear function, decision trees, tile coding and so on as the function approximator, we obtain "shallow" RL, and the parameters $\theta$ are the weight parameters in these models. Note, a shallow model, e.g., decision trees, may be non-linear. The distinct difference between deep RL and "shallow" RL is what function approximator is used. This is similar to the difference between deep learning and "shallow" learning. We usually utilize stochastic gradient descent to update weight parameters in deep RL. When off-policy, function approximation, in particular, non-linear function approximation, and bootstrapping are combined together, instability and divergence may occur~\citep{TDWithApproximator}. However, recent work like Deep Q-Network~\citep{Atari} and AlphaGo~\citep{AlphaGo} stabilized the learning and achieved outstanding results.
+The TD-learning, Q-learning and SARSA converge under certain conditions. Given the optimal state
+value function we can derive the optimal policy by acting greedily with respect to this policy.
 
-We explain some terms in RL parlance. The prediction problem, or policy evaluation, is to compute the state or action value function for a policy. The control problem is to find the optimal policy. Planning constructs a value function or a policy with a model. On-policy methods evaluate or improve the behavioural policy, e.g., SARSA fits the action-value function to the current policy, i.e., SARSA evaluates the policy based on samples from the same policy, then refines the policy greedily with respect to action values. In off-policy methods, an agent learns an optimal value function/policy, maybe following an unrelated behavioural policy, e.g., Q-learning attempts to find action values for the optimal policy directly, not necessarily fitting to the policy generating the data, i.e., the policy Q-learning obtains is usually different from the policy that generates the samples.  The notion of on-policy and off-policy can be understood as same-policy and different-policy.The exploration-exploitation dilemma is about the agent needs to exploit the currently best action to obtain rewards, yet it has to explore the environment to find better actions.  In model-free methods, the agent learns with trail-and-error from experience explicitly; the model (state transition function) is not known or learned from experience. RL methods that use models are model-based methods. In online mode, training algorithms are executed on data acquired in sequence. In batch mode, models are trained on the entire data set. With bootstrapping, an estimate of state or action value is updated from subsequent estimates.
+In contract to value based methods, policy gradient methods directly learn the optimal policy
+$\pi^*$ by following the gradient of state value function $\E_s \nabla V^{\pi}(s)$.
+If the policy is parameterized with parameters $\theta$, $\pi(\theta)$ the value of this
+gradient is given by the policy gradient theorem:
+
+\begin{align*}
+    \nabla_{\theta} V^{\pi}(s_0) = \sum_{s \in \States} \sum_{t = 0}^{\infty} \gamma^t
+    P(s_0 \to s, t, \pi) \sum_{a \in \Actions} \nabla_{\theta} \pi(a|s) Q^{\pi}(s,a)
+\end{align*}
+
+Where $P(s_0 \to s, t, \pi)$ is a probability of visiting a step $s$ after $t$ steps when starting
+from state $s_0$ and following policy $\pi$. For simplicity we  also assume that there is a fixed
+starting state $s_0$ in the environment. In more general case, we would replace this with
+distribution over starting states.
+
+REINFORCE is an on-policy policy gradient based method that estimates the gradient using
+Monte-Carlo sampling:
+\begin{align*}
+    \nabla_{\theta} V^{\pi}(s_0) = \E_{\pi} \class{\gamma^t (R_t - b(s_t)) \nabla_{\theta} \log{\pi(a_t|s_t)}}
+\end{align*}
+where $b(s_t)$ is a baseline function that is chosen arbitrarily to reduce the variance of the gradient
+estimate. The algorithm iterates between collecting samples and then estimating and applying the gradient to
+the current policy.
+
+A3C\cite{mnih2016asynchronous} is an on-policy policy gradient based actor-critic method, that replaces Monte-Carlo full
+episode returns $R_t$ with an estimate of an advantage function $A^{\pi}(s,a) = Q^{\pi}(s,a) -
+V^{\pi}(s)$:
+\begin{align*}
+    \nabla_{\theta} V^{\pi}(s_0) = \E_{\pi} \class{\gamma^t A^{\pi}(s,a) \nabla_{\theta} \log{\pi(a_t|s_t)}}
+\end{align*}
+In A3C the advantage function is estimated using $n$-step returns and value function as follows:
+\begin{align*}
+    A^{\pi}(s_t,a_t) = \sum_{i = 0}^{k - 1} \gamma^i r_{t + i} + \gamma^k V^{\pi}(s_{t + k}) -
+    V^{\pi}(s_t)
+\end{align*}
+And the value function is trained in parallel with the policy from the bootstrapped $n$-step returns:
+\begin{align*}
+    \pars{\sum_{i = 0}^{k - 1} \gamma^i r_{t + i} + \gamma^k V^{\pi}(s_{t + k}) - V^{\pi}(s_t)}^2 \to \min
+\end{align*}
+
+There are more advanced off-policy policy gradient methods that apply off-policy corrections
+(e.g. importance) sampling to account for the changes in the distribution of data generated by the
+policy. One example of such method is ACER\cite{wang2016sample} that combines actor-critic methods
+with experience replay.
