@@ -37,6 +37,7 @@ We end up with the architecture that consists of the following components:
 \includegraphics[width=\textwidth]{architecture}
 \end{figure}
 
+We provide a pseudo-code for each component thread:
 \begin{algorithm}
     \caption{Actor thread}\label{actor}
     \begin{algorithmic}[1]
@@ -77,24 +78,44 @@ We end up with the architecture that consists of the following components:
     \end{algorithmic}
 \end{algorithm}
 
-- Description of more efficient architecture, and questions that we need to
-  answer to build it. Compare with PAAC, GA3C, tell when one is better then
-  the other and vice versa.
+We've also experimented with the scheme where actors predictions happen on the GPU, but this
+approach trashes the performance of GPU. % graphs?
 
-In this section we describe:
-- Tell that this is our new ideas.
+This architecture has the following advantages:
+\begin{itemize}
+    \item High utilization for learner hardware. This scheme achieves more then 90\% utilization
+        for GPU-based learner allowing it to consume almost 50\% more training samples then DQN in
+        the same time.
 
-- Tell how it looks like. Simple description of the process in terms of multiple CPU and 1 GPU.
+    \item No sequential blocking of actor and learner. If the environment is very slow, the learner
+        can can continue improving the policy and be fully utilized provided the trainer can come up
+        with the training examples, which is trivial in case of Q-learning with experience replay.
+        In contrast, on DQN this blocking leads to the utilization of GPU that has a saw-like
+        pattern, and on average is less then 50\%.
 
-- Give a code for actor, trainer and learner.
+    \item Ability to have multiple independent actors that don't interfere with each other. As long
+        as there are enough CPU cores on the machine, the actors will be able to run in separate
+        threads and achieve linear scalability, as they are using separate copies of the model and
+        environment. This model also permits actors that run on multiple machines.
 
-- Tell how this compares to other architectures, in what regimes it should operate better then
-the other algorithms.
+    \item Flexibility in choosing the trainer procedure. We can use schemes with simple forwarding,
+        experience replay, or even curriculum learning.
+\end{itemize}
+
+Comparing to GORILA architecture, we provide tighter feedback loop, making it possible to use
+on-policy algorithms as described in GA3C. Comparing to GA3C each actor leaves in a separate
+thread, allowing them to run without introducing the contention and also opening the possibility
+to run them on different machines. Our measurements show that running an actor on CPU is only 30\%
+slower then running it on GPU, which is a good trade trade-off, as it makes schedule of GPU much
+simpler.
 
 - Tell about resulting GPU utilization and time spent in different modes of operation.
+Put graphs here. How much time each thread spends on different things.
 
 - Tell about existing bottlenecks, what will be the limiting factor depending on the env speed,
 training speed, network size.
 
-- Tell how this is applicable to DQN and ACER (and any algorithm with experience replay, or
-slightly off-policy data tolerance).
+It's important to note, that this architecture is not limited to Q-learning and can be applied
+for on-policy learning in a similar to GA3C way. The challenge there is to ensure that trainer is
+not providing too stale samples to the learner, as this might lead to the unstable learning
+algorithm.
