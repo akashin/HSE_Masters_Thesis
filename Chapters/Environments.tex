@@ -1,20 +1,17 @@
-\section{Environments}
+\subsection{Environments}
 
-% Section about environments and their performance
-Environments - describe why simulated environments are used, what kind of
-tasks they simulate, how they range in Accuracy, Performance, Complexity,
-Usability.
+%In this section we will describe what is the environment from the reinforcement learning
+%perspective, what kind of tasks are representable as RL environment, and how different environments
+%vary in accuracy, performance, complexity and usability aspects.
 
-In this section we will describe:
-- What is the environment from RL perspective (state transition function, rewards).
-
+\paragraph{Environments classification}
 Reinforcement learning algorithms usually operate in the context of the specific
 environment that is characterized by it's \emph{state space} $\States$,
 \emph{action space} $\Actions$, \emph{transition dynamics} $\TransitionProb(s, a, s')$ and
 \emph{rewards distribution} $\Rewards(s)$.
 When the agent interacts with the environment, it observes some part of the state $o(s)$,
 and performs an action $a$ from the action space. This causes the environment to transition to
-next state $s'$ with probability $\TransitionProb(s, a, s')$ and also gives agent a reward sampled
+next state $s'$ with probability $\TransitionProb(s, a, s')$ and also gives the agent a reward sampled
 from $\Rewards(s')$.
 
 When $o(s) = s$, i.e. $o(\cdot)$ is an identity function, the environment is said to be
@@ -25,49 +22,64 @@ Another important classification of environments arises from the type of the act
 that can be either discrete or continuous. For some of the algorithms this
 distinction is critical, for example vanilla Q-learning methods become infeasible in
 continuous action space, as it becomes difficult to perform $max$ operator in this space.
-There are some works that aim to overcome this issue \cite{NAF}.
+There are some works that aim to overcome this issue \cite{gu2016continuous}.
 Policy gradient methods are agnostic to the type of the action space, as long as there is
-a proper reparametresation in terms of some convenient distribution (e.g. Normal).
+a proper reparametrization in terms of some convenient distribution (e.g. gaussian).
 
 This definition of the environment allows wide range of virtual and real-world systems to be
 represented as an instance of this model. This, as a consequence, allows solving tasks of policy
 estimation and optimal control for this systems.
 
+\paragraph{Atari}
 An example of the virtual discrete environment that is widely used as a benchmark for
-optimal control reinforcement learning algorithms is Arcade Learning Environment \cite{ALE},
-that introduced programmatic access to 47 classic video games from Atari 2600 simulator.
+optimal control reinforcement learning algorithms is Arcade Learning Environment
+\cite{bellemare13arcade}, that introduced programmatic access to 47 classic video games
+from Atari 2600 simulator.
 Each game corresponds to a separate environment with it's own mechanics and rewards system,
-including a highly visual input space. The first reinforcement learning methods that showed
-super-human results on subset of this environments was a DQN \cite{DQN} algorithm.
+including a highly visual input space. The first reinforcement learning method that showed
+super-human results on subset of this environments was the DQN \cite{mnih-dqn-2015} algorithm.
 Some of the tasks from this benchmark like Montezuma Revenge are still posing a major
-challenge to the most of current algorithms.
+challenge for most RL algorithms.
 
-Another family of environments that are more connected with real-world continuous control
+% TODO: Put Atari image here.
+
+\paragraph{Physics simulation}
+Another family of environments that are more connected to the real-world continuous control
 problems like robotics are physics simulation engines. One notable example from this family
-that is considered as a benchmark for continuous control algorithms is Mujoco \cite{Mujoco}.
+that is considered as a benchmark for continuous control algorithms is Mujoco
+\cite{todorov2012mujoco}.
 This physics engine allows fast and high-fidelity simulation of dynamic physical systems
 like multi-joint robotic arm control. The framework comes with the set of tools for
-building and interacting.
+building and interacting with environments in real-time.
+
+% TODO: Put Mujoco image here.
 
 It's imporant to realize, that the same environment allows different observation types -
 when algorithm interacts with physics engine, it might operate on physical parameters of the
 system (coordinates, velocities, accelerations) or on the video stream of the environment from
-multiple cameras as it would be in real physical system. As expected, solving the control
+multiple cameras as it would be in the real-world system. As expected, solving the control
 tasks in the environment is usually much simpler from the core system parameters rather
 then from the raw pixel observations.
 
+\paragraph{Board games}
 The environments presented above are the examples with fixed environment dynamics.
 This is not always true, and the important example of the environments with parameterized
 transition dynamics are two-player board games. In this case, the opponent greatly influences
 the behaviour of the environment. On of the first successes of application of reinforcement
-learning was in the Backgammon board game \cite{TDGammon} in 1994.
-Recent success in this area is the compute program AlphaGo \cite{AlphaGo} that defeated
-world champion in the ancient game of Go.
+learning was the computer program called TD-Gammon \cite{tesauro1995temporal} developed in 1995.
+Approximately twenty years later, reinforcement learning algorithms combined with deep learning and
+tree search resulted in computer program AlphaGo \cite{silver2016mastering} that
+was able to defeat the world champion in the ancient game of Go.
 
-- What are the examples of simulated environments (ALE, Mujoco, StarCraft, VizDoom).
-- tell more about FPS environments, Dota2, why are those hard? Give the Rock-Paper-Scissors
-analogy that shows that determenistic policy is not a Nash-equillibria of this game.
+% TODO: Put Go image here.
 
+\paragraph{Modern video games}
+The next challenge for RL algorithms comes in the form of competitive video games that involve
+both planning and reaction abilities, and also include team-based multi-agent competitions.
+Such games are VizDoom \cite{Kempka2016ViZDoom}, StarCraft 2 \cite{vinyals2017starcraft}, Dota 2.
+
+
+\paragraph{Benefits of simulated environments}
 Simulated environments game invaluable boost to the reasearch community by providing a
 safe and data-rich controllable testbed for the algorithms. Let's address each point:
 \begin{itemize}
@@ -75,30 +87,29 @@ safe and data-rich controllable testbed for the algorithms. Let's address each p
     for training both neural networks and reinforcement learning algorithms. In contrast to
     supervised learning where one dataset with labels is enough for training any algorithm,
     in on-policy reinforcement learning the data should come from the distribution that is
-    dependant on the algorithm itself, meaning that dataset should be always collected on-line
+    dependant on the algorithm itself, meaning that dataset should be always collected online
     during the performance of the algorithm.
 
     \item The learning algorithm usually has no explicit goal to ensure that it's actions are
     safe for the environment, and includes a fair amount of random exploration on the early
     stages of training, which might lead to destructive behaviour when applied in real-world.
     This is especially important in areas like robotics or automated control of physical systems
-    like datacenter \cite{DrData}. The simulated environment doesn't suffer from this problem,
+    like datacenter \cite{gao2014machine}. The simulated environment doesn't suffer from this problem,
     as mistakes can not lead to catastrophic consequences.
 
     \item It's often very hard to get the algorithm off the ground on a complicated task,
     and the usual approach is to build complexity gradually, for example by starting from the
     simplified feature/action space, or solving sub-goals of the bigger task in curriculum
-    learning \cite{Curriculum}. This is easily achivable with flexible frameworks like
-    DMLab \cite{DMLab} that allow building custom levels and expose engine information to
-    the algorithm.
+    learning \cite{wu2016training}. This is easily achivable with flexible frameworks like
+    DeepMind Lab \cite{beattie2016deepmind} that allow building custom levels and expose engine
+    information to the algorithm.
 \end{itemize}
 
-- How simulated environments are commonly implemented, and what implication this brings?
-(limited accuracy, limited speed, limited diversity (in case of opponents in board games))
-
-Simulated environments are usually implemented with several requirements in mind:
+% Simulated environments are usually implemented with several requirements in mind:
 % Actually, I need to negate this statements. It's rather the problems of the current environments,
 % something like the iron triangle, you can't have all of them.
+The development of RL environments often suffers 'project management triangle', trying to
+find a balance between following qualities:
 \begin{itemize}
     \item Speed --- the environment should be able to generate big amounts of data to
     feed the training procedure. That's why most engines are implemented in low-level
@@ -108,22 +119,15 @@ Simulated environments are usually implemented with several requirements in mind
     laws of physics, as the trained algorithms are expected to transfer well to the real world,
     hopefully with minimal amount of effort.
 
-    \item Diversity --- current learning algorithms are very prone to overfitting, meaning that
+    \item Flexibility --- current learning algorithms are very prone to overfitting, meaning that
     if the environment during the training introduced some bias, for example, same color of
     walls in the maze, or same opponent in the board game, the algorithm is likely to overfit
     to this specific setting, and won't generalize well to other setting.
 \end{itemize}
 
-- Other notable progress in environments development: DeepMind Lab, VizDoom, StarCraft 2.
-
-- How this work addresses is connected to different environments: we build an adaptive algorithm,
-that can take into account the speed of the environment.
-
-In this work we explore the architecture that can work well in slow environments by decoupling
-the learning process and the interaction with environment to allow them to happen in parallel,
+In this work we explore the architecture that can adapt to the speed of environments by decoupling
+the learning process and the interaction with environment, allowing them to happen in parallel,
 without blocking each other.
-
-- Tell more about environments used in this work: VizDoom.
 
 %\include{Chapters/FPS}
 %\include{Chapters/Pong}
