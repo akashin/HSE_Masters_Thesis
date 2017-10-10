@@ -13,7 +13,7 @@ For building an efficient training architecture, we start by answering the follo
 
     \item What are the bottlenecks that prevent current algorithms to perform well? --- Most of the
     current algorithms introduce sequential dependency between acting and training procedure, that
-    is absolutely unnecessary and prevents from fully utilizing a hardware and also leads to the
+    is often absolutely unnecessary and prevents from fully utilizing a hardware and also leads to the
     slowdown when there is a skew in components performance.
 \end{itemize}
 
@@ -103,6 +103,11 @@ thread, allowing them to run without introducing the contention and also opening
 to run them on different machines. Our measurements show that running an actor on CPU is only 30\%
 slower then running it on GPU, which is a good trade trade-off, as it makes schedule of GPU much
 simpler.
+
+\begin{figure}[h!]
+\caption{Scalability with batch size}
+\includegraphics[width=\textwidth]{batch_size_vs_fps_vs_steps}
+\end{figure}
 
 - Tell about resulting GPU utilization and time spent in different modes of operation.
 Put graphs here. How much time each thread spends on different things.
