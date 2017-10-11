@@ -1,11 +1,11 @@
 \section{Experiments}
 
-In this chapter we describe the evaluation setup,
+In this chapter we describe the evaluation setup and conducted experiments.
 
-In this section we show:
-- Description of the evaluation setup, how long the models trained, which hardware was used,
-which networks were used. Any specifics of the traning procedure. Sizes of the replay tables,
-learning rates.
+%In this section we show:
+%- Description of the evaluation setup, how long the models trained, which hardware was used,
+%which networks were used. Any specifics of the traning procedure. Sizes of the replay tables,
+%learning rates.
 
 \subsection{Evaluation setup}
 
@@ -25,17 +25,29 @@ All experiments use discount factor $\gamma = 0.99$ and Adam optimizer.
 
 To validate that our learning algorithm is robust to hyperparameters choice, we conduct a sweep
 over the grid of parameters on VizDoom level DoomDefendCenter and present the obtained learning
-curves.
+curves. The learning rate in chosen in $[1e-4, 5e-4, 1e-3]$, the batch size is chosen in
+$[16, 32, 64, 128, 256]$, the target network update frequency is chosen in $[50, 100, 200, 400]$.
+The algorithm successfully trains with all combinations of parameters, showing that it's robust
+to their variation.
+As can be seen on figure \ref{fig:doom_sweep} from the parallel plot, the configurations with
+largest batch size show the best performance after training for a fixed number of iterations.
+Also, the configurations with large learning rates tend to have worse performance.
 
-- Explanation why the algorithms perform as they do. Study on how hyperparameters influence
-the performance both in terms of training speed and efficiency.
-
-\begin{figure}[h!]
+\begin{figure*}[!t]
+\subfloat[Learning curves]{\includegraphics[width=0.5\textwidth]{doom_sweep}}
+\subfloat[Hyperparameters quality]{\includegraphics[width=0.5\textwidth]{sweep_parallel_coordinates}}\\
 \caption{Parameter sweep for DoomDefendCenter environment}
-\includegraphics[width=\textwidth]{doom_sweep}
-\end{figure}
+\label{fig:doom_sweep}
+\end{figure*}
 
 \subsection{Training speed comparison}
+
+\begin{figure*}[!t]
+\subfloat[VizDoom Defend Center]{\includegraphics[width=0.5\textwidth]{vizdoom_defend_center}}\hfill
+\subfloat[Atari Pong]{\includegraphics[width=0.4\textwidth]{atari_pong}}\\
+\caption{Raw observations for the games}
+\label{fig:game_frames}
+\end{figure*}
 
 \paragraph{Doom}
 As a preprocessing step, we rescale images to $80 \times 80$ and transform them from RGB to greyscale.
@@ -43,17 +55,25 @@ We also introduce a frame skip of size 4, meaning that each agent action is repe
 We use the replay table of size $50000$, and anneal exploration ratio $\eps$ linearly from 1 to 0.02
 over the first $1/4$ of training iterations. We use learning rate of $1e-4$.
 
-- Graphs of DQN, DecoupledDQN performance on 3 VizDoom Gym levels.
-
 \paragraph{Atari}
 We use the same input preprocessing as in \cite{mnih-dqn-2015}, involving rescaling images to $84
 \times 84$ and turning them from RGB into greyscale, and also introducing a frame skip of size 4.
 We use the replay table of size $200000$, and anneal exploration ratio $\eps$ linearly from 1 to 0.02
 over the first $1/4$ of training iterations. We use learning rate of $1e-4$.
+We show the training performance of Decoupled DQN on two Atari environments: Pong and Boxing.
+The environments are provided by OpenAI Gym, with following versions: PongDeterministic-v4 and
+BoxingDeterministic-v4.
 
-- Graphs of DQN, DecoupledDQN performance on 3 Atari games.
+\begin{figure*}[!t]
+\subfloat[PongDeterministic-v4]{\includegraphics[width=0.5\textwidth]{pong_learning_curve}}
+\subfloat[BoxingDeterministic-v4]{\includegraphics[width=0.5\textwidth]{boxing_learning_curve}}\\
+\caption{Learning curves for Atari environments}
+\label{fig:atari_curves}
+\end{figure*}
 
-- Explanation what is on the graph, how we made the measurements robust to the noise (choosing top 5
-from several random seeds).
+%- Graphs of DQN, DecoupledDQN performance on 3 Atari games.
 
-- How the methods perform in terms of wall time/sample efficiency.
+%- Explanation what is on the graph, how we made the measurements robust to the noise (choosing top 5
+%from several random seeds).
+
+%- How the methods perform in terms of wall time/sample efficiency.
