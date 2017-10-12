@@ -20,6 +20,13 @@ For building an efficient training architecture, we start by answering the follo
 We address this questions in the new architecture \emph{Decoupled DQN}, that is based on DQN
 training procedure, decomposed in a way as to maximize the performance on CPU/GPU system.
 Our architecture is shown on Figure \ref{fig:architecture} and consists of three main components:
+
+\begin{figure}[t]
+\caption{Decoupled DQN architecture}
+\includegraphics[width=\textwidth]{architecture}
+\label{fig:architecture}
+\end{figure}
+
 \begin{itemize}
     \item Actor --- interacts with the environment, by acting and collection the experience. To
         make actions. Uses a separate model replica that is periodically synced with the master replica.
@@ -34,14 +41,8 @@ Our architecture is shown on Figure \ref{fig:architecture} and consists of three
         master model. Runs on GPU, as it needs to perform heavy batch computations.
 \end{itemize}
 
-\begin{figure}[h!]
-\caption{Decoupled DQN architecture}
-\includegraphics[width=\textwidth]{architecture}
-\label{fig:architecture}
-\end{figure}
-
 The algorithm \ref{algo:ddqn_algo} shows the pseudo-code for each component thread.
-\begin{algorithm}
+\begin{algorithm}[h!]
     \caption{Decoupled DQN}\label{actor}
     \begin{algorithmic}
         \Procedure {Actor}{$env$, $actorQueue$}
@@ -94,6 +95,16 @@ This architecture has the following advantages:
         In contrast, on DQN this blocking leads to the utilization of GPU that has a saw-like
         pattern, and on average is less then 50\%.
 
+        \begin{figure*}[h!]
+            \subfloat[With bigger batch size learner has higher throughput]{\includegraphics[height=0.34\textwidth]{batch_size_vs_fps_vs_steps}}
+            \subfloat[Actor performance does not depend on batch size]{\includegraphics[height=0.34\textwidth]{batch_size_vs_actor_steps}}\\
+            \caption{Dependence of core system parameters on batch size used by learner. Bigger
+            batch sizes lead to higher training throughput, and don't influence actors}
+            \label{fig:batch_size_scalability}
+        \end{figure*}
+\end{itemize}
+
+\begin{itemize}
     \item Ability to have multiple independent actors that don't interfere with each other. As long
         as there are enough CPU cores on the machine, the actors will be able to run in separate
         threads and achieve linear scalability, as they are using separate copies of the model and
@@ -110,20 +121,12 @@ to run them on different machines. Our measurements show that running an actor o
 slower then running it on GPU, which is a good trade trade-off, as it makes schedule of GPU much
 simpler.
 
-\begin{figure*}[!t]
-\subfloat[Learner scalability]{\includegraphics[width=0.5\textwidth]{batch_size_vs_fps_vs_steps}}
-\subfloat[Actor isolation]{\includegraphics[width=0.5\textwidth]{batch_size_vs_actor_steps}}\\
-\caption{Dependence of core system parameters on batch size used by learner. Bigger
-batch sizes lead to higher training throughput, and don't influence actors}
-\label{fig:batch_size_scalability}
-\end{figure*}
-
 We also study the percentage of time spent by the threads in different operations shown
 on Figure \ref{fig:ddqn_time} and ensure that learner is spending all the time training.
 
-\begin{figure*}[!t]
-\subfloat[Actor]{\includegraphics[width=0.5\textwidth]{actor_time_distribution}}
-\subfloat[Learner]{\includegraphics[width=0.5\textwidth]{learner_time_distribution}}\\
+\begin{figure*}[h]
+\subfloat[Actor spends similar time for acting and making a step]{\includegraphics[width=0.5\textwidth]{actor_time_distribution}}
+\subfloat[Learner spends 99.9\% on training]{\includegraphics[width=0.5\textwidth]{learner_time_distribution}}\\
 \caption{Distribution of Actor and Learner threads time between operations}
 \label{fig:ddqn_time}
 \end{figure*}

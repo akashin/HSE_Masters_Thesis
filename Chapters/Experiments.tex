@@ -33,18 +33,18 @@ As can be seen on figure \ref{fig:doom_sweep} from the parallel plot, the config
 largest batch size show the best performance after training for a fixed number of iterations.
 Also, the configurations with large learning rates tend to have worse performance.
 
-\begin{figure*}[!t]
-\subfloat[Learning curves]{\includegraphics[width=0.5\textwidth]{doom_sweep}}
-\subfloat[Hyperparameters quality]{\includegraphics[width=0.5\textwidth]{sweep_parallel_coordinates}}\\
+\begin{figure*}[h!]
+\subfloat[Reward over time for training with different hyperparameters]{\includegraphics[height=0.35\textwidth]{doom_sweep}}
+\subfloat[Quality of hyperparameters configurations]{\includegraphics[height=0.35\textwidth]{sweep_parallel_coordinates}}\\
 \caption{Parameter sweep for DoomDefendCenter environment}
 \label{fig:doom_sweep}
 \end{figure*}
 
-\subsection{Training speed comparison}
+\subsection{Training setup}
 
-\begin{figure*}[!t]
-\subfloat[VizDoom Defend Center]{\includegraphics[width=0.5\textwidth]{vizdoom_defend_center}}\hfill
-\subfloat[Atari Pong]{\includegraphics[width=0.4\textwidth]{atari_pong}}\\
+\begin{figure*}[t]
+\subfloat[VizDoom Defend Center]{\includegraphics[height=0.35\textwidth]{vizdoom_defend_center}}\hspace{1.5cm}
+\subfloat[Atari Pong]{\includegraphics[height=0.35\textwidth]{atari_pong}}\\
 \caption{Raw observations for the games}
 \label{fig:game_frames}
 \end{figure*}
@@ -64,10 +64,10 @@ We show the training performance of Decoupled DQN on two Atari environments: Pon
 The environments are provided by OpenAI Gym, with following versions: PongDeterministic-v4 and
 BoxingDeterministic-v4.
 
-\begin{figure*}[!t]
+\begin{figure*}[t]
 \subfloat[PongDeterministic-v4]{\includegraphics[width=0.5\textwidth]{pong_learning_curve}}
 \subfloat[BoxingDeterministic-v4]{\includegraphics[width=0.5\textwidth]{boxing_learning_curve}}\\
-\caption{Learning curves for Atari environments}
+\caption{Rewards over time for training on Atari environments (Decoupled DQN - green, DQN - blue)}
 \label{fig:atari_curves}
 \end{figure*}
 
